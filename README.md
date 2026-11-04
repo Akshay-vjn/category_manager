@@ -19,9 +19,9 @@ Categories are stored on the device and remain after restarting the app. New cat
 
 - Create root categories and subcategories at any depth.
 - Reject duplicate names under the same parent; allow the same name under different parents.
-- Expand and collapse the hierarchy, with parent and child details.
+- Expand and collapse the hierarchy to browse parent and child categories.
 - Search category names at any depth and show the complete path, parent, and direct children.
-- Apply an optional result limit and navigate paginated results with page, page size, and total count.
+- Navigate paginated results with the current range and total count.
 - Show loading, validation, empty, and error states.
 
 ## Architecture
@@ -32,7 +32,7 @@ Riverpod supplies dependencies and manages asynchronous login, category creation
 
 SQLite (`sqflite`) provides durable local storage, transactions, foreign keys, and indexed parent lookups. A category has an ID, name, parent ID, and creation timestamp. The implementation also stores a normalized name for sibling uniqueness and a user ID to keep each user's categories separate. A null parent ID marks a root. The database is opened from sqflite's persistent database directory.
 
-The tree loads direct children when a branch expands. A recursive SQLite query walks from each search result to its root to build the full path, so there is no fixed depth in the data model or search logic. Search matches names at any depth. The repository accepts an optional total result limit and one based page and page size; it returns the total matching count and page metadata. The UI pages large result sets instead of loading all rows at once.
+The tree loads direct children when a branch expands. A recursive SQLite query walks from each search result to its root to build the full path, so there is no fixed depth in the data model or search logic. Search matches names at any depth. The repository accepts an optional total result limit and one based page and page size; it returns the total matching count and page metadata. The UI uses a fixed page size of 20 and shows previous and next controls for large result sets.
 
 ## Verify
 

@@ -49,66 +49,53 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-    'options validate, apply a limit and can be cleared on a small phone',
-    (tester) async {
-      await phone(tester, width: 320, height: 640);
-      final queries = <CategoryQuery>[];
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            categoryPageProvider.overrideWith((ref, query) async {
-              queries.add(query);
-              return CategoryPage<CategoryEntry>(
-                items: [],
-                page: query.page,
-                pageSize: query.pageSize,
-                totalCount: 0,
-                limit: query.limit,
-              );
-            }),
-          ],
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            home: HomeScreen(user: UserProfile.fromJson(profileJson())),
-          ),
+  testWidgets('category search stays usable on a small phone', (tester) async {
+    await phone(tester, width: 320, height: 640);
+    final queries = <CategoryQuery>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          categoryPageProvider.overrideWith((ref, query) async {
+            queries.add(query);
+            return CategoryPage<CategoryEntry>(
+              items: [],
+              page: query.page,
+              pageSize: query.pageSize,
+              totalCount: 0,
+              limit: query.limit,
+            );
+          }),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          home: HomeScreen(user: UserProfile.fromJson(profileJson())),
         ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Options'));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Limit results (optional)'),
-        '-2',
-      );
-      await tester.tap(find.text('Apply options'));
-      await tester.pumpAndSettle();
-      expect(
-        find.text('Enter a positive whole number, or leave empty.'),
-        findsOneWidget,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Limit results (optional)'),
-        '5',
-      );
-      await tester.tap(find.text('Apply options'));
-      await tester.pumpAndSettle();
-      expect(queries.last.limit, 5);
-      expect(queries.last.page, 1);
-      expect(find.text('Up to 5 results'), findsOneWidget);
-      await tester.tap(find.byTooltip('Delete'));
-      await tester.pumpAndSettle();
-      expect(queries.last.limit, isNull);
-      // Opening the keyboard must leave the search screen scrollable without overflow.
-      tester.view.viewInsets = const FakeViewPadding(bottom: 280);
-      addTearDown(tester.view.resetViewInsets);
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-    },
-  );
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Options'), findsNothing);
+    expect(find.byIcon(Icons.info_outline_rounded), findsNothing);
+    expect(queries.last.pageSize, 20);
+    expect(queries.last.limit, isNull);
 
-  testWidgets('tree can expand and show details on a phone', (tester) async {
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Search categories'),
+      'Travel',
+    );
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(queries.last.search, 'Travel');
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tree can expand without extra row actions on a phone', (
+    tester,
+  ) async {
     await phone(tester);
     final root = Category(
       id: 1,
@@ -171,28 +158,9 @@ void main() {
     await tester.tap(find.text('Personal'));
     await tester.pumpAndSettle();
     expect(find.text('Travel plans'), findsOneWidget);
-    await tester.tap(find.byTooltip('Details for Personal'));
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.text('Personal'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Location in your categories'), findsNothing);
-    expect(find.text('Subcategories'), findsNothing);
-    await tester.tap(find.text('Close'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Details for Travel plans'));
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.text('Personal › Travel plans'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byTooltip('Details for Personal'), findsNothing);
+    expect(find.byIcon(Icons.info_outline_rounded), findsNothing);
+    expect(find.byTooltip('Add subcategory to Personal'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

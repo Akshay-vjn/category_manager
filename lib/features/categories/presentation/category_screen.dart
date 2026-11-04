@@ -6,7 +6,6 @@ import 'package:category_manager/core/widgets/feedback_widgets.dart';
 import 'package:category_manager/features/categories/data/models/category_query.dart';
 import 'package:category_manager/features/categories/data/providers/category_providers.dart';
 import 'package:category_manager/features/categories/presentation/widgets/category_tree.dart';
-import 'package:category_manager/features/categories/presentation/widgets/category_options_sheet.dart';
 import 'package:category_manager/features/categories/presentation/widgets/create_category_dialog.dart';
 
 class CategoryScreen extends ConsumerStatefulWidget {
@@ -21,8 +20,6 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
   Timer? _debounce;
   String _search = '';
   int _page = 1;
-  int _pageSize = 20;
-  int? _limit;
 
   @override
   void dispose() {
@@ -59,22 +56,6 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
     if (_scroll.hasClients) _scroll.jumpTo(0);
   }
 
-  Future<void> _showOptions() async {
-    final options = await showModalBottomSheet<CategoryOptions>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) =>
-          CategoryOptionsSheet(initial: (pageSize: _pageSize, limit: _limit)),
-    );
-    if (!mounted || options == null) return;
-    setState(() {
-      _pageSize = options.pageSize;
-      _limit = options.limit;
-      _page = 1;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final activeUserId = ref.watch(currentUserIdProvider);
@@ -83,8 +64,7 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
       search: _search,
       rootsOnly: _search.isEmpty,
       page: _page,
-      pageSize: _pageSize,
-      limit: _limit,
+      pageSize: 20,
     );
     final results = ref.watch(categoryPageProvider(query));
     return CustomScrollView(
@@ -97,48 +77,24 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _searchChanged,
-                        textInputAction: TextInputAction.search,
-                        onSubmitted: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        decoration: InputDecoration(
-                          hintText: 'Search categories',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          suffixIcon: _searchController.text.isEmpty
-                              ? null
-                              : IconButton(
-                                  tooltip: 'Clear search',
-                                  onPressed: _clearSearch,
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: _showOptions,
-                      child: const Text('Options'),
-                    ),
-                  ],
-                ),
-                if (_limit != null) ...[
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: InputChip(
-                      label: Text('Up to $_limit results'),
-                      onDeleted: () => setState(() {
-                        _limit = null;
-                        _page = 1;
-                      }),
-                    ),
+                TextField(
+                  controller: _searchController,
+                  onChanged: _searchChanged,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  decoration: InputDecoration(
+                    hintText: 'Search categories',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _searchController.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Clear search',
+                            onPressed: _clearSearch,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
                   ),
-                ],
+                ),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerLeft,

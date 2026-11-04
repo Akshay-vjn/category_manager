@@ -31,30 +31,6 @@ class _CategoryBranchState extends ConsumerState<CategoryBranch> {
     _expanded = widget.showContext;
   }
 
-  void _details() {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        content: SizedBox(
-          width: 360,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              widget.entry.breadcrumb,
-              textAlign: TextAlign.center,
-              style: Theme.of(dialogContext).textTheme.titleMedium,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
   CategoryEntry get entry => widget.entry;
 
   @override
@@ -99,37 +75,26 @@ class _CategoryBranchState extends ConsumerState<CategoryBranch> {
                 )
               : null,
           onTap: entry.childCount == 0
-              ? _details
+              ? null
               : () => setState(() => _expanded = !_expanded),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                tooltip: 'Details for ${entry.category.name}',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.info_outline_rounded, size: 20),
-                onPressed: _details,
-              ),
-              IconButton(
-                tooltip: 'Add subcategory to ${entry.category.name}',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(
-                  Icons.add_rounded,
-                  size: 22,
-                  color: AppTheme.green,
-                ),
-                onPressed: () async {
-                  final saved = await showCreateCategory(
-                    context,
-                    ref,
-                    parent: entry.category,
-                  );
-                  if (saved == true && mounted) {
-                    setState(() => _expanded = true);
-                  }
-                },
-              ),
-            ],
+          trailing: IconButton(
+            tooltip: 'Add subcategory to ${entry.category.name}',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(
+              Icons.add_rounded,
+              size: 22,
+              color: AppTheme.green,
+            ),
+            onPressed: () async {
+              final saved = await showCreateCategory(
+                context,
+                ref,
+                parent: entry.category,
+              );
+              if (saved == true && mounted) {
+                setState(() => _expanded = true);
+              }
+            },
           ),
         ),
         if (_expanded && entry.childCount > 0)
