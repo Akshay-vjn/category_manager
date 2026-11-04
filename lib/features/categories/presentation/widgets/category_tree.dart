@@ -6,6 +6,7 @@ import 'package:category_manager/features/auth/data/providers/auth_providers.dar
 import 'package:category_manager/features/categories/data/models/category.dart';
 import 'package:category_manager/features/categories/data/models/category_query.dart';
 import 'package:category_manager/features/categories/data/providers/category_providers.dart';
+import 'package:category_manager/features/categories/presentation/widgets/category_details_dialog.dart';
 import 'package:category_manager/features/categories/presentation/widgets/create_category_dialog.dart';
 
 class CategoryBranch extends ConsumerStatefulWidget {
@@ -32,51 +33,9 @@ class _CategoryBranchState extends ConsumerState<CategoryBranch> {
   }
 
   void _details() {
-    final entry = widget.entry;
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.folder_outlined, color: AppTheme.green),
-        title: Text(entry.category.name),
-        content: SizedBox(
-          width: 420,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'FULL PATH',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SelectableText(
-                  entry.breadcrumb,
-                  style: const TextStyle(height: 1.6),
-                ),
-                const Divider(height: 32),
-                Text('Parent: ${entry.parent?.name ?? 'None (root)'}'),
-                const SizedBox(height: 12),
-                Text('Direct children: ${entry.childCount}'),
-                const SizedBox(height: 12),
-                Text(
-                  'Created: ${MaterialLocalizations.of(context).formatMediumDate(entry.category.createdAt.toLocal())}',
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+      builder: (_) => CategoryDetailsDialog(entry: widget.entry),
     );
   }
 
@@ -244,32 +203,43 @@ class PageControls extends StatelessWidget {
   final ValueChanged<int> onChanged;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Center(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8,
-        children: [
-          IconButton.outlined(
-            tooltip: 'Previous page',
-            onPressed: result.page > 1
-                ? () => onChanged(result.page - 1)
-                : null,
-            icon: const Icon(Icons.chevron_left_rounded),
-          ),
-          Text('Page ${result.page} of ${result.totalPages}'),
-          IconButton.outlined(
-            tooltip: 'Next page',
-            onPressed: result.hasNext ? () => onChanged(result.page + 1) : null,
-            icon: const Icon(Icons.chevron_right_rounded),
-          ),
-          Text(
-            '${result.pageSize ?? result.availableCount} per page · ${result.totalCount} total',
-          ),
-        ],
+  Widget build(BuildContext context) {
+    final pageSize = result.pageSize ?? result.availableCount;
+    final first = (result.page - 1) * pageSize + 1;
+    final end = result.page * pageSize;
+    final last = end < result.availableCount ? end : result.availableCount;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          children: [
+            IconButton.outlined(
+              tooltip: 'Previous page',
+              onPressed: result.page > 1
+                  ? () => onChanged(result.page - 1)
+                  : null,
+              icon: const Icon(Icons.chevron_left_rounded),
+            ),
+            Semantics(
+              label: 'Page ${result.page} of ${result.totalPages}',
+              child: Text('Showing $first–$last of ${result.availableCount}'),
+            ),
+            IconButton.outlined(
+              tooltip: 'Next page',
+              onPressed: result.hasNext
+                  ? () => onChanged(result.page + 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right_rounded),
+            ),
+            if (result.totalCount > result.availableCount)
+              Text('${result.totalCount} matches in total'),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -209,7 +209,7 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                   },
                 ),
               ),
-            if (result.totalCount > 0)
+            if (result.totalPages > 1)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16),

@@ -9,6 +9,7 @@ import 'package:category_manager/features/profile/presentation/profile_screen.da
 import 'package:category_manager/features/categories/data/models/category.dart';
 import 'package:category_manager/features/categories/data/models/category_query.dart';
 import 'package:category_manager/features/categories/data/providers/category_providers.dart';
+import 'package:category_manager/features/categories/presentation/widgets/category_tree.dart';
 import 'package:category_manager/features/auth/presentation/splash_screen.dart';
 import 'support/test_api.dart';
 
@@ -172,9 +173,37 @@ void main() {
     expect(find.text('Travel plans'), findsOneWidget);
     await tester.tap(find.byTooltip('Details for Personal'));
     await tester.pumpAndSettle();
-    expect(find.text('FULL PATH'), findsOneWidget);
-    expect(find.text('Direct children: 1'), findsOneWidget);
+    expect(find.text('Location in your categories'), findsOneWidget);
+    expect(find.text('Top-level category'), findsOneWidget);
+    expect(find.text('1 direct subcategory'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pagination uses result ranges without a page badge', (
+    tester,
+  ) async {
+    var selectedPage = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PageControls(
+            result: CategoryPage<CategoryEntry>(
+              items: [],
+              page: 1,
+              pageSize: 10,
+              totalCount: 25,
+              limit: null,
+            ),
+            onChanged: (page) => selectedPage = page,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Showing 1–10 of 25'), findsOneWidget);
+    expect(find.textContaining('Page 1 of'), findsNothing);
+    await tester.tap(find.byTooltip('Next page'));
+    expect(selectedPage, 2);
   });
 
   testWidgets('profile wraps long details with large accessibility text', (
