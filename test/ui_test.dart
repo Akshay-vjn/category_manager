@@ -76,7 +76,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Display options'));
+      await tester.tap(find.text('Options'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Limit results (optional)'),
@@ -173,9 +173,26 @@ void main() {
     expect(find.text('Travel plans'), findsOneWidget);
     await tester.tap(find.byTooltip('Details for Personal'));
     await tester.pumpAndSettle();
-    expect(find.text('Location in your categories'), findsOneWidget);
-    expect(find.text('Top-level category'), findsOneWidget);
-    expect(find.text('1 direct subcategory'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Personal'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Location in your categories'), findsNothing);
+    expect(find.text('Subcategories'), findsNothing);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Details for Travel plans'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Personal › Travel plans'),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

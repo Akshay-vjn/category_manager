@@ -6,7 +6,6 @@ import 'package:category_manager/features/auth/data/providers/auth_providers.dar
 import 'package:category_manager/features/categories/data/models/category.dart';
 import 'package:category_manager/features/categories/data/models/category_query.dart';
 import 'package:category_manager/features/categories/data/providers/category_providers.dart';
-import 'package:category_manager/features/categories/presentation/widgets/category_details_dialog.dart';
 import 'package:category_manager/features/categories/presentation/widgets/create_category_dialog.dart';
 
 class CategoryBranch extends ConsumerStatefulWidget {
@@ -35,7 +34,24 @@ class _CategoryBranchState extends ConsumerState<CategoryBranch> {
   void _details() {
     showDialog<void>(
       context: context,
-      builder: (_) => CategoryDetailsDialog(entry: widget.entry),
+      builder: (dialogContext) => AlertDialog(
+        content: SizedBox(
+          width: 360,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              widget.entry.breadcrumb,
+              textAlign: TextAlign.center,
+              style: Theme.of(dialogContext).textTheme.titleMedium,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 

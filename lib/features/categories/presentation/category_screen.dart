@@ -120,10 +120,9 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton.outlined(
-                      tooltip: 'Display options',
+                    TextButton(
                       onPressed: _showOptions,
-                      icon: const Icon(Icons.tune_rounded),
+                      child: const Text('Options'),
                     ),
                   ],
                 ),
